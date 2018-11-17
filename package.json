@@ -1,11 +1,22 @@
 {
-  "name": "rewards-page",
+  "name": "store-page",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "^16.6.0",
-    "react-dom": "^16.6.0",
-    "react-scripts": "2.0.5"
+    "@fortawesome/fontawesome-svg-core": "^1.2.8",
+    "@fortawesome/free-solid-svg-icons": "^5.5.0",
+    "@fortawesome/react-fontawesome": "^0.1.3",
+    "babel-loader": "^8.0.4",
+    "bootstrap": "^4.1.3",
+    "jquery": "^3.3.1",
+    "node-sass": "^4.10.0",
+    "popper.js": "^1.14.5",
+    "react": "^16.6.1",
+    "react-bootstrap": "^0.32.4",
+    "react-dom": "^16.6.1",
+    "react-scripts": "2.1.1",
+    "react-widgets": "^4.4.6",
+    "sass": "^1.15.1"
   },
   "scripts": {
     "start": "react-scripts start",
