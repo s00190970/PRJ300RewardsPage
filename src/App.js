@@ -136,7 +136,7 @@ class Product extends React.Component{
       this.props.doOrderBy(newOrderBy);
     }
     doOrder(e){
-      const newOrder = e.target.getAttribute('data-value');
+      const newOrder = e.target.checked;
       this.props.doOrder(newOrder);
     }
 
@@ -144,7 +144,7 @@ class Product extends React.Component{
       const { orderBy, order, doOrderBy, doOrder } = this.props;   
       const checked = <FontAwesomeIcon icon="check" />
       return (
-        <div className="dropdown show">
+        <div className="dropdown">
           <button className="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Sort products 
             <span className="caret"></span>
@@ -156,8 +156,10 @@ class Product extends React.Component{
           
             <div className="dropdown-divider"></div>
             <h6 className="dropdown-header">Order</h6>
-            <li><button className="dropdown-item" onClick={ doOrder } data-value="asc">ascendind {order==="asc" ? checked : null}</button></li>
-            <li><button className="dropdown-item" onClick={ doOrder } data-value="desc">descending {order==="desc" ? checked : null}</button></li>
+            <label className="tgl dropdown-item">
+                <input type="checkbox" onClick={doOrder}/>
+                <span data-on="Descending" data-off="Ascending"></span>
+            </label>
           </ul>
         </div>  
      )   
@@ -179,7 +181,7 @@ class Product extends React.Component{
       this.props.doOrderBy(newOrderBy);
     }
     doOrder(e){
-      const newOrder = e.target.getAttribute('data-value');
+      const newOrder = e.target.checked;
       this.props.doOrder(newOrder);
     }
 
@@ -210,13 +212,10 @@ class Product extends React.Component{
                 order={ order } />
             </div>           
             <div className="col-md">
-              <div className="checkBoxInputGroup">
-                <input className="form-check-input" type="checkbox" 
-                  id="affordableCheck" onClick={this.handleAffordableChange} />
-                <label id="affordableCheckLabel" className="form-check-label" htmlFor="affordableCheck">
-                  Display only affordable
-                </label>
-              </div>
+              <label className="tgl">
+                <input type="checkbox" onClick={this.handleAffordableChange}/>
+                <span data-on="Affordable" data-off="All Products"></span>
+              </label>
             </div>
           </div>
         </div>
@@ -261,13 +260,13 @@ class Product extends React.Component{
 
       if(this.props.orderBy==="price"){
         products = products.sort(this.sortbyPrice);
-        if(this.props.order==="desc"){
+        if(this.props.order===true){
           products = products.reverse();
         }
       }
       else{
         products=products.sort(this.sortbyRemaining);
-        if(this.props.order==="desc"){
+        if(this.props.order===true){
           products = products.reverse();
         }
       }
@@ -295,7 +294,7 @@ class Product extends React.Component{
         categoryFilter: '',
         affordableChecked:false,
         orderBy: "price",
-        order: "asc",
+        order: false,
       };
       this.handleCategoryChange = this.handleCategoryChange.bind(this);
       this.handleAffordableChange = this.handleAffordableChange.bind(this);
@@ -307,7 +306,7 @@ class Product extends React.Component{
       this.setState({orderBy : newOrderBy});
     }
     doOrder(e){
-      const newOrder = e.target.getAttribute('data-value');
+      const newOrder = e.target.checked;
       this.setState({order : newOrder});
     }
 
