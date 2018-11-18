@@ -61,7 +61,7 @@
       display: none !important;
     }
     .tgl input[type="checkbox"]:not(:checked) + span {
-      background: #428bca;
+      background: #17a2b8;
       color: #FFFFFF;
       padding-left: 1.6em;
       padding-right: 0.4em;
@@ -75,7 +75,7 @@
       left: 1.6em;
     }
     .tgl input[type="checkbox"]:checked + span {
-      background: #428bca;
+      background: #17a2b8;
       color: #FFFFFF;
       padding-left: 0.4em;
       padding-right: 1.6em;
