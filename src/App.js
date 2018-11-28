@@ -7,8 +7,17 @@ import jsonProds from './mockData';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import {fire} from './firebase/firebase';
 
 library.add(faCheck);
+
+const db = fire.firestore();
+db.settings({
+  timestampsInSnapshots: true
+});
+var productsRef = db.collection('shopItems');
+var usersRef = db.collection('users');
+var wishlistRef = db.collection('wishlist');
 
 
 class Picture extends React.Component{
@@ -60,13 +69,27 @@ class Picture extends React.Component{
   }
 
   class WishlistButton extends React.Component{
+    productKey;
     constructor(props){
       super(props);
+      this.addToWishlist = this.addToWishlist.bind(this);
+      console.log(props);
+    }
+    componentDidMount(){
+      this.productKey = this.props.productKey;
+    }
+    addToWishlist(){
+      usersRef.doc('LXCYHelb75dWxPRZhhB5').get().then(doc =>{
+        wishlistRef.add({
+          user_id: doc.id,
+          product_id: this.productKey
+        })
+      })
+      
     }
     render(){
-      
       return(
-        <button className="wishlistButton btn btn-primary" role="button">Add to Wishlist</button>
+        <button className="wishlistButton btn btn-primary" role="button" onClick={this.addToWishlist}>Add to Wishlist</button>
       )
     }
   }
@@ -78,6 +101,7 @@ class Product extends React.Component{
 
   render(){
     const product = this.props.product;
+    const user = this.props.user;
     const productName = product.name;
     const productDescription = product.description;
     const picURL = product.picURL;
@@ -86,6 +110,7 @@ class Product extends React.Component{
     const price = product.price;
     const quantity = product.quantity;
     const remaining = product.remaining;
+    const productKey = product.key;
     return(
       <div className="productCard container border rounded d-flex align-items-center justify-content-center">
         <div className="productCardContent">
@@ -115,7 +140,7 @@ class Product extends React.Component{
               <ProductProgressbar quantity={quantity} remaining={remaining}></ProductProgressbar>
             </div>
             <div className="col-md d-flex justify-content-end">
-              <WishlistButton></WishlistButton>
+              <WishlistButton productKey={productKey}></WishlistButton>
             </div>
           </div>
         </div>
@@ -141,7 +166,7 @@ class Product extends React.Component{
     }
 
     render() {   
-      const { orderBy, order, doOrderBy, doOrder } = this.props;   
+      const { orderBy, doOrderBy, doOrder } = this.props;   
       const checked = <FontAwesomeIcon icon="check" />
       return (
         <div className="dropdown">
@@ -251,10 +276,11 @@ class Product extends React.Component{
     }
 
     render(){
-
+      let user = this.props.user;
+      let userCoins = user.coins;
       let products = this.props.productList;
       if(this.props.affordableChecked){
-        products = products.filter(this.filterbyAffordable(this.props.userCoins));
+        products = products.filter(this.filterbyAffordable(userCoins));
       }
       products = products.filter(this.filterbyCategory(this.props.categoryFilter));
 
@@ -273,7 +299,7 @@ class Product extends React.Component{
 
       const listProducts = products.map((product, index)=>
         <div className="col-md-4" key={index}>
-          <Product product={product}></Product>
+          <Product product={product} user={user}></Product>
         </div>
       );
       return(
@@ -287,20 +313,70 @@ class Product extends React.Component{
   }
 
   class Page extends React.Component{
+    unsubscribe;
     constructor(props){
       super(props);
+      
+      this.unsubscribe = null;
       this.state = {
-        productList: jsonProds,
         categoryFilter: '',
         affordableChecked:false,
         orderBy: "price",
         order: false,
+        productList:[],
+        user: {
+          username: '',
+          coins: 0,
+          doc:'',
+          key: ''
+        }
       };
       this.handleCategoryChange = this.handleCategoryChange.bind(this);
       this.handleAffordableChange = this.handleAffordableChange.bind(this);
       this.doOrderBy = this.doOrderBy.bind(this);
       this.doOrder = this.doOrder.bind(this);
     }
+
+    componentDidMount(){
+      this.unsubscribe = productsRef.onSnapshot(this.onCollectionUpdate);
+
+      usersRef.doc('LXCYHelb75dWxPRZhhB5').get().then(doc =>{
+        const {name, coins} = doc.data();
+        const user = {
+          name,
+          coins,
+          doc,
+          key: doc.id
+        }
+        this.setState({
+          user: user
+        })
+      })
+      .catch(err=>console.log(err));
+    }
+
+    onCollectionUpdate = (querySnapshot) =>{
+      const products = [];
+      querySnapshot.forEach((doc) => {
+        const { category, description, name, picURL, price, quantity, remaining, brand } = doc.data();
+        products.push({
+          key: doc.id,
+          doc, // DocumentSnapshot
+          category,
+          description,
+          name,
+          picURL,
+          price,
+          quantity,
+          remaining,
+          brand
+        });
+      });
+      this.setState({
+        productList: products
+     });
+    }
+
     doOrderBy(e){
       const newOrderBy = e.target.getAttribute('data-value');
       this.setState({orderBy : newOrderBy});
@@ -317,6 +393,10 @@ class Product extends React.Component{
       this.setState({affordableChecked:e.target.checked})
     }
 
+    addFirebaseData(){
+      jsonProds.forEach(prod => productsRef.add(prod));
+    }
+
     render(){
       let products = this.state.productList;
       let categoryFilter = this.state.categoryFilter;
@@ -325,11 +405,15 @@ class Product extends React.Component{
       const orderBy = this.state.orderBy;
       const order = this.state.order;
 
-      let userCoins = this.props.userCoins;
+      let user = this.state.user;
+      let userCoins = user.coins;
+      let userName = user.name;
       return(
         
         <div className="container">
-          <Filters userCoins={userCoins}
+        <button className="btn btn-primary" type="button" onClick={this.addFirebaseData}>Add data to Firebase</button>
+        Hello, {userName}, you have {userCoins} Coins
+          <Filters user={user}
             productList={products} 
             categoryFilter={categoryFilter} onCategoryChange={this.handleCategoryChange}
             affordableChecked={affordableChecked} onAffordableChange={this.handleAffordableChange}
@@ -338,7 +422,7 @@ class Product extends React.Component{
             doOrder={ this.doOrder } order={ order }>
             
           </Filters>
-          <ProductContainer userCoins={userCoins}
+          <ProductContainer user = {user}
             productList={products} 
             categoryFilter={categoryFilter}
             affordableChecked={affordableChecked}
