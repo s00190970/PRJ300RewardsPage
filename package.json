@@ -18,6 +18,8 @@
     "react-dom": "^16.6.1",
     "react-scripts": "2.1.1",
     "react-widgets": "^4.4.6",
+    "redux-observable": "^1.0.0",
+    "rxjs": "^6.3.3",
     "sass": "^1.15.1"
   },
   "scripts": {
