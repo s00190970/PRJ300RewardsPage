@@ -8,10 +8,23 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import FirebaseServices from './firebase/services';
+import Modal from 'react-modal';
+
 
 const firebaseServices = new FirebaseServices(); 
-
+Modal.setAppElement('#root');
 library.add(faCheck);
+
+const modalStyle = {
+  content : {
+    top                   : '50%',
+    left                  : '50%',
+    right                 : 'auto',
+    bottom                : 'auto',
+    marginRight           : '-50%',
+    transform             : 'translate(-50%, -50%)'
+  }
+};
 
 
 class Picture extends React.Component{
@@ -68,6 +81,7 @@ class Picture extends React.Component{
     wishlist=[];
     constructor(props){
       super(props);
+      this.subscriptions = [];
       this.addToWishlist = this.addToWishlist.bind(this);
       this.isInWishlist = this.isInWishlist.bind(this);
       this.state = {
@@ -77,14 +91,20 @@ class Picture extends React.Component{
     componentDidMount(){
       this.productKey = this.props.productKey;
       this.userKey = this.props.userKey;
-      firebaseServices.getWishlist(this.userKey).subscribe(items =>{
+      this.subscriptions.push(firebaseServices.getWishlist(this.userKey).subscribe(items =>{
         this.setState({isInWishlist: false});
         this.wishlist = items;
         this.isInWishlist();
-      })
+      }));
     }
-    addToWishlist(){
+
+    componentWillUnmount(){
+      this.subscriptions.forEach(obs => obs.unsubscribe());
+    }
+
+    addToWishlist(event){
       firebaseServices.addToWishlist(this.productKey, this.userKey);
+      event.stopPropagation();
     }
     isInWishlist(){
       if(this.wishlist.includes(this.productKey)){
@@ -105,23 +125,40 @@ class Picture extends React.Component{
 class Product extends React.Component{
   constructor(props){
     super(props);
+    this.subscriptions = [];
     this.isInWishlist = this.isInWishlist.bind(this);
+    this.openModal = this.openModal.bind(this);
+    this.closeModal = this.closeModal.bind(this);
     this.productKey = this.props.product.key;
     this.state = {
-      isInWishlist: false
+      isInWishlist: false,
+      modalIsOpen: false
     }
     this.userKey = this.props.user.key;
-    firebaseServices.getWishlist(this.userKey).subscribe(items =>{
+    this.subscriptions.push(firebaseServices.getWishlist(this.userKey).subscribe(items =>{
       this.setState({isInWishlist: false});
       this.wishlist = items;
       this.isInWishlist();
-    })
+    }));
+  }
+
+  componentWillUnmount(){
+    this.subscriptions.forEach(obs => obs.unsubscribe());
   }
 
   isInWishlist(){
     if(this.wishlist.includes(this.productKey)){
       this.setState({isInWishlist: true});
     }
+  }
+
+  openModal() {
+    if(!this.state.modalIsOpen){
+      this.setState({modalIsOpen: true});
+    }
+  }
+  closeModal() {
+    this.setState({modalIsOpen: false});
   }
 
   render(){
@@ -141,7 +178,12 @@ class Product extends React.Component{
     const inWishlist = this.state.isInWishlist;
     return(
       <div className={"productCard container border rounded d-flex align-items-center justify-content-center "+
-            (inWishlist ? "inWishlist" : '')}>
+            (inWishlist ? "inWishlist" : '')} onClick={this.openModal}>
+        <Modal isOpen={this.state.modalIsOpen} onRequestClose={this.closeModal} style={modalStyle} shouldCloseOnOverlayClick={true}>
+          <button onClick={this.closeModal}>close</button>
+          <div>I am a modal</div>
+          <Product product={product} wishlist={wishlist} user={user}></Product>
+        </Modal>
         <div className="productCardContent">
           <div className="row">
             <div className="col-md-3 d-flex justify-content-start"> 
@@ -345,6 +387,7 @@ class Product extends React.Component{
   class Page extends React.Component{
     constructor(props){
       super(props);
+      this.subscriptions = [];
       
       this.state = {
         categoryFilter: '',
@@ -367,12 +410,15 @@ class Product extends React.Component{
     }
 
     componentDidMount(){   
-      firebaseServices.getUser("LXCYHelb75dWxPRZhhB5")
-        .subscribe(user => this.setState({user: user}));
-      firebaseServices.getProducts()
-        .subscribe(products => this.setState({productList: products}));
-      firebaseServices.getWishlist("LXCYHelb75dWxPRZhhB5")
-        .subscribe(items => this.setState({wishlist: items}));
+      this.subscriptions.push(firebaseServices.getUser("LXCYHelb75dWxPRZhhB5")
+        .subscribe(user => this.setState({user: user})));
+      this.subscriptions.push(firebaseServices.getProducts()
+        .subscribe(products => this.setState({productList: products})));
+      this.subscriptions.push(firebaseServices.getWishlist("LXCYHelb75dWxPRZhhB5")
+        .subscribe(items => this.setState({wishlist: items})));
+    }
+    componentWillUnmount(){
+      this.subscriptions.forEach(obs => obs.unsubscribe());
     }
 
     doOrderBy(e){
