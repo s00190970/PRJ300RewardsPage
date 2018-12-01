@@ -268,6 +268,7 @@ class Product extends React.Component{
       super(props);
       this.handleCategoryChange = this.handleCategoryChange.bind(this);
       this.handleAffordableChange = this.handleAffordableChange.bind(this);
+      this.handleWishlistChange = this.handleWishlistChange.bind(this);
       this.doOrderBy=this.doOrderBy.bind(this);
       this.doOrder=this.doOrder.bind(this);
     }
@@ -287,7 +288,10 @@ class Product extends React.Component{
     handleAffordableChange(e){
       this.props.onAffordableChange(e);
     }
-    
+    handleWishlistChange(e){
+      this.props.onWishlistChange(e);
+    }
+
     render(){
       const rewardsType = ['Electronics', 'Shoes', 'Sports', 'Others', 'All'];
       const { orderBy, order, doOrderBy, doOrder } = this.props;
@@ -313,6 +317,12 @@ class Product extends React.Component{
                 <span data-on="Affordable" data-off="All Products"></span>
               </label>
             </div>
+            <div className="col-md">
+              <label className="tgl">
+                <input type="checkbox" onClick={this.handleWishlistChange}/>
+                <span data-on="Wishlist products hidden" data-off="All Products"></span>
+              </label>
+            </div>
           </div>
         </div>
       );
@@ -322,7 +332,33 @@ class Product extends React.Component{
   class ProductContainer extends React.Component{
     constructor(props){
       super(props);  
+      this.state = { wishlist: [] };
+      this.subscriptions = [];
+      this.isInWishlist = this.isInWishlist.bind(this);
+      this.filterbyWishlist = this.filterbyWishlist.bind(this);
+      this.userKey="";
     }
+    componentWillReceiveProps(nextProps) {
+      if (nextProps.user.key !== this.userKey) {
+        this.userKey = nextProps.user.key;
+        this.subscriptions.push(firebaseServices.getWishlist(this.userKey).subscribe(items =>{
+          this.setState({wishlist: items});
+        }));
+      }
+    }
+
+    
+    componentWillUnmount(){
+      this.subscriptions.forEach(obs => obs.unsubscribe());
+    }
+
+    isInWishlist(prod){
+      if(this.state.wishlist.includes(prod.key)){
+        return true;
+      }
+      return false;
+    }
+
 
     filterbyCategory(str){
       return function(product){
@@ -338,6 +374,9 @@ class Product extends React.Component{
         return product.price>coins ? 0 : 1;
       }
     }
+    filterbyWishlist(prod){
+      return !this.isInWishlist(prod);
+    }
     sortbyPrice(a, b){
       return (a.price > b.price) ? 1 : ((a.price < b.price) ? -1 : 0);   
     }
@@ -348,11 +387,15 @@ class Product extends React.Component{
 
     render(){
       const user = this.props.user;
+      this.userKey = user.key;
       const userCoins = user.coins;
       var products = this.props.productList;
       const wishlist = this.props.wishlist;
       if(this.props.affordableChecked){
         products = products.filter(this.filterbyAffordable(userCoins));
+      }
+      if(this.props.wishlistChecked){
+        products = products.filter(this.filterbyWishlist);
       }
       products = products.filter(this.filterbyCategory(this.props.categoryFilter));
 
@@ -369,8 +412,8 @@ class Product extends React.Component{
         }
       }
 
-      const listProducts = products.map((product, index)=>
-        <div className="col-md-4" key={index}>
+      const listProducts = products.map((product)=>
+        <div className="col-md-4" key={product.key}>
           <Product product={product} user={user} wishlist={wishlist}></Product>
         </div>
       );
@@ -392,6 +435,7 @@ class Product extends React.Component{
       this.state = {
         categoryFilter: '',
         affordableChecked:false,
+        wishlistChecked: false,
         orderBy: "price",
         order: false,
         productList:[],
@@ -405,6 +449,7 @@ class Product extends React.Component{
       };
       this.handleCategoryChange = this.handleCategoryChange.bind(this);
       this.handleAffordableChange = this.handleAffordableChange.bind(this);
+      this.handleWishlistChange = this.handleWishlistChange.bind(this);
       this.doOrderBy = this.doOrderBy.bind(this);
       this.doOrder = this.doOrder.bind(this);
     }
@@ -436,7 +481,9 @@ class Product extends React.Component{
     handleAffordableChange(e){
       this.setState({affordableChecked:e.target.checked})
     }
-
+    handleWishlistChange(e){
+      this.setState({wishlistChecked:e.target.checked})
+    }
     addFirebaseData(){
       jsonProds.forEach(prod => firebaseServices.addProduct(prod));
     }
@@ -445,6 +492,7 @@ class Product extends React.Component{
       const products = this.state.productList;
       const categoryFilter = this.state.categoryFilter;
       const affordableChecked = this.state.affordableChecked;
+      const wishlistChecked = this.state.wishlistChecked;
 
       const orderBy = this.state.orderBy;
       const order = this.state.order;
@@ -461,7 +509,7 @@ class Product extends React.Component{
             productList={products} 
             categoryFilter={categoryFilter} onCategoryChange={this.handleCategoryChange}
             affordableChecked={affordableChecked} onAffordableChange={this.handleAffordableChange}
-
+            wishlistChecked={wishlistChecked} onWishlistChange={this.handleWishlistChange}
             doOrderBy={ this.doOrderBy } orderBy={ orderBy }
             doOrder={ this.doOrder } order={ order }>
             
@@ -470,6 +518,7 @@ class Product extends React.Component{
             productList={products} 
             categoryFilter={categoryFilter}
             affordableChecked={affordableChecked}
+            wishlistChecked={wishlistChecked}
             orderBy={ orderBy }
             order={ order }>
           </ProductContainer>
