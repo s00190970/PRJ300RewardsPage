@@ -312,16 +312,22 @@ class Product extends React.Component{
                 order={ order } />
             </div>           
             <div className="col-md">
-              <label className="tgl">
-                <input type="checkbox" onClick={this.handleAffordableChange}/>
-                <span data-on="Affordable" data-off="All Products"></span>
-              </label>
+            <section>              
+              <input id='affordableChk' type='checkbox' onClick={this.handleAffordableChange}/>
+              <label htmlFor='affordableChk'>
+                <span></span>
+                Show only affordable items
+              </label>          
+            </section>
             </div>
             <div className="col-md">
-              <label className="tgl">
-                <input type="checkbox" onClick={this.handleWishlistChange}/>
-                <span data-on="Wishlist products hidden" data-off="All Products"></span>
-              </label>
+            <section>              
+              <input id='wishlistChk' type='checkbox' onClick={this.handleWishlistChange}/>
+              <label htmlFor='wishlistChk'>
+                <span></span>
+                Hide wishlist items
+              </label>          
+            </section>
             </div>
           </div>
         </div>
