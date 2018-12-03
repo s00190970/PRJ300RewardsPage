@@ -1,7 +1,8 @@
 import React from 'react';
 import { DropdownList } from 'react-widgets'
-import './App.css';
-import './Checkbox.css';
+import './css/App.css';
+import './css/Checkbox.css';
+import './css/closeButton.css';
 import 'react-widgets/dist/css/react-widgets.css';
 import jsonProds from './mockData';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -180,9 +181,10 @@ class Product extends React.Component{
       <div className={"productCard container border rounded d-flex align-items-center justify-content-center "+
             (inWishlist ? "inWishlist" : '')} onClick={this.openModal}>
         <Modal isOpen={this.state.modalIsOpen} onRequestClose={this.closeModal} style={modalStyle} shouldCloseOnOverlayClick={true}>
-          <button onClick={this.closeModal}>close</button>
-          <div>I am a modal</div>
-          <Product product={product} wishlist={wishlist} user={user}></Product>
+          <button onClick={this.closeModal} className="closeButton"></button>
+          <div style={{height: '80%', position: 'relative'}}>
+            <Product product={product} wishlist={wishlist} user={user}></Product>
+          </div>
         </Modal>
         <div className="productCardContent">
           <div className="row">
