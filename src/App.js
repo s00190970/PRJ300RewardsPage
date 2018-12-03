@@ -239,7 +239,7 @@ class Product extends React.Component{
     }
 
     render() {   
-      const { orderBy, doOrderBy, doOrder } = this.props;   
+      const { orderBy, order, doOrderBy, doOrder } = this.props;   
       const checked = <FontAwesomeIcon icon="check" />
       return (
         <div className="dropdown">
@@ -254,10 +254,8 @@ class Product extends React.Component{
           
             <div className="dropdown-divider"></div>
             <h6 className="dropdown-header">Order</h6>
-            <label className="tgl dropdown-item">
-                <input type="checkbox" onClick={doOrder}/>
-                <span data-on="Descending" data-off="Ascending"></span>
-            </label>
+            <li><button className="dropdown-item" onClick={ doOrder } data-value="asc">ascendind {order==="asc" ? checked : null}</button></li>
+            <li><button className="dropdown-item" onClick={ doOrder } data-value="desc">descending {order==="desc" ? checked : null}</button></li>
           </ul>
         </div>  
      )   
@@ -280,7 +278,7 @@ class Product extends React.Component{
       this.props.doOrderBy(newOrderBy);
     }
     doOrder(e){
-      const newOrder = e.target.checked;
+      const newOrder = e.target.getAttribute('data-value');
       this.props.doOrder(newOrder);
     }
 
@@ -314,7 +312,7 @@ class Product extends React.Component{
                 order={ order } />
             </div>           
             <div className="col-md">
-            <section>              
+            <section className="checkboxSection">              
               <input id='affordableChk' type='checkbox' onClick={this.handleAffordableChange}/>
               <label htmlFor='affordableChk'>
                 <span></span>
@@ -323,7 +321,7 @@ class Product extends React.Component{
             </section>
             </div>
             <div className="col-md">
-            <section>              
+            <section className="checkboxSection">              
               <input id='wishlistChk' type='checkbox' onClick={this.handleWishlistChange}/>
               <label htmlFor='wishlistChk'>
                 <span></span>
@@ -409,13 +407,13 @@ class Product extends React.Component{
 
       if(this.props.orderBy==="price"){
         products = products.sort(this.sortbyPrice);
-        if(this.props.order===true){
+        if(this.props.order==="desc"){
           products = products.reverse();
         }
       }
       else{
         products=products.sort(this.sortbyRemaining);
-        if(this.props.order===true){
+        if(this.props.order==="desc"){
           products = products.reverse();
         }
       }
@@ -445,7 +443,7 @@ class Product extends React.Component{
         affordableChecked:false,
         wishlistChecked: false,
         orderBy: "price",
-        order: false,
+        order: "asc",
         productList:[],
         wishlist:[],
         user: {
@@ -479,7 +477,7 @@ class Product extends React.Component{
       this.setState({orderBy : newOrderBy});
     }
     doOrder(e){
-      const newOrder = e.target.checked;
+      const newOrder = e.target.getAttribute('data-value');
       this.setState({order : newOrder});
     }
 

@@ -1,15 +1,4 @@
-* {
-  box-sizing: border-box;
-  user-select: none;
-}
-html, body {
-  margin: 0;
-  height: 100%;
-}
-body {
-  font: 17.14286px "RobotoDraft", sans-serif;
-}
-section {
+.checkboxSection {
   display: flex;
   flex-direction: column;
 }
